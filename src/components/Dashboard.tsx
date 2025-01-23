@@ -26,9 +26,9 @@ export default function Dashboard() {
     const [csvUrl, setCsvUrl] = useState<string>("");
 
     const handleProcessCsv = async () => {
-      
+
       try {
-        const response = await axios.post("/api/process", { csv_url: csvUrl });
+        const response = await axios.post("http://127.0.0.1:5000/train", { csv_url: csvUrl });
   
         setAccuracy(response.data.accuracy); 
         setError(null); 
