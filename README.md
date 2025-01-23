@@ -37,7 +37,7 @@ This project focuses on optimizing BMW’s sales strategy through data-driven in
   - Implement lazy loading and pagination to handle large datasets efficiently.
 
 - **Security Concerns**:
-  - Utilize role-based access control (RBAC) to restrict sensitive data access.
+  - Utilize role-based access to restrict sensitive data access.
   - Leverage BMW’s internal security measures for additional protection.
 
 - **Docker and Kubernetes**:
