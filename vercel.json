@@ -1,0 +1,7 @@
+{
+    "functions": {
+      "api/train.py": {
+        "runtime": "vercel-python@1.0.0"
+      }
+    }
+  }

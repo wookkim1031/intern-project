@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import type {Order, Sale, Product, Customer,DashboardFilters} from "./dataInterface"
 import Papa from 'papaparse';
+import axios from "axios";
 
 interface ParsedData {
   [keyof: string]: string;
@@ -18,9 +19,23 @@ export default function Dashboard() {
     const [orders, setOrders] = useState<ParsedData[]>([]);
     const [products, setProducts] = useState<ParsedData[]>([]);
     const [customers, setCustomers] = useState<ParsedData[]>([]);
+    const [accuracy, setAccuracy] = useState<number | null>(null);
     const [showImport, setShowImport] = useState(true);
     const [csvData, setCsvData] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [csvUrl, setCsvUrl] = useState<string>("");
+
+    const handleProcessCsv = async () => {
+      
+      try {
+        const response = await axios.post("/api/process", { csv_url: csvUrl });
+  
+        setAccuracy(response.data.accuracy); 
+        setError(null); 
+      } catch (err: any) {
+        setError(err.response?.data?.error || "An error occurred during processing.");
+      }
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type:string) => {
         const file = e.target.files?.[0];
@@ -63,6 +78,11 @@ export default function Dashboard() {
     <div>
       <h2>Upload CSV FIles: Orders.csv, Sales.csv, Customers.csv, and Products.csv</h2>
       <div>
+        <button onClick={handleProcessCsv}>
+            Process CSV
+        </button>
+        {accuracy !== null && <p>Model Accuracy: {accuracy.toFixed(2)}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
         <label>
           Orders Table: 
           <input type="file" accept=".csv" onChange={(e) => handleFileChange(e, 'orders')}/>
