@@ -11,16 +11,36 @@ from io import StringIO
 with open("config.json", "r") as file:
     config = json.load(file)
 
-CSV_URL = config["csv_files"]["default"]  
+Sales_url = config["csv_files"]["sales"]  
+Orders_url = config["csv_files"]["orders"]  
+Products_url = config["csv_files"]["products"]  
+Customers_url = config["csv_files"]["customers"]  
 
 app = Flask(__name__)
 
 CORS(app, origins=["http://localhost:3000"])
 
+@app.route("/countries", methods=["GET"])
+def get_countries_list():
+    response = requests.get(Customers_url)
+    csv_content = response.text
+    df = pd.read_csv(StringIO(csv_content))
+    countries = df["Country"].unique()
+    return jsonify({"countries": countries}) 
+
+@app.route("/countries/<country_name>", methods=["GET"])
+def get_country_data(country_name):
+    response = requests.get(Customers_url)
+    csv_content = response.text
+    df = pd.read_csv(StringIO(csv_content))
+
+    
+    
+
 @app.route("/train", methods=["POST"])
 def train():
     try:
-        response = requests.get(CSV_URL)
+        response = requests.get(Sales_url)
         if response.status_code != 200:
             return jsonify({"error": f"Failed to fetch CSV file: {response.status_code}"}), 400
 

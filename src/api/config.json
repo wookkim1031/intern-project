@@ -1,5 +1,9 @@
+
 {
-    "csv_files": {
-      "default": "https://ncetrlusncjytfjv.public.blob.vercel-storage.com/sales-85mWvldnLkYoqYNPhb8fe6rBpFhqgu.csv"
+    "csv_files": { 
+      "sales": "https://ncetrlusncjytfjv.public.blob.vercel-storage.com/sales-85mWvldnLkYoqYNPhb8fe6rBpFhqgu.csv",
+      "orders": "https://ncetrlusncjytfjv.public.blob.vercel-storage.com/orders-uE4hcFvq1xHnzg4tHb8b6qA6rrQ5Z8.csv",
+      "products": "https://ncetrlusncjytfjv.public.blob.vercel-storage.com/products-xyggFC5HzlN9lB8XHpKEunzjI6y8oR.csv",
+      "customers": "https://ncetrlusncjytfjv.public.blob.vercel-storage.com/customers-llBUF4es5FJ5E187KGKWhGBkFITevY.csv"
     }
   }

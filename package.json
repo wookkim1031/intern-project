@@ -10,8 +10,10 @@
     "cra-template-typescript": "1.2.0",
     "firebase": "^11.2.0",
     "papaparse": "^5.5.1",
+    "plotly.js": "^2.35.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-plotly.js": "^2.6.0",
     "react-scripts": "5.0.1",
     "typescript": "^5.7.3",
     "web-vitals": "^4.2.4"
