@@ -19,6 +19,38 @@ order_sales = pd.merge(orders_df, sales_df, on="Order.ID", how="outer")
 order_sales_customers = pd.merge(order_sales, customers_df, on="Customer.ID", how="left")
 order_sales_customers_products = pd.merge(order_sales_customers, products_df, on="Product.ID", how="left")
 
+seasonal_df = order_sales_customers_products[["Order.Date", "Product Name", "Sales", "Profit", "Shipping.Cost"]]
+seasonal_df["Order.Date"] = pd.to_datetime(seasonal_df["Order.Date"])
+seasonal_df["Month"] = seasonal_df["Order.Date"].dt.month
+seasonal_df["Year"] = seasonal_df["Order.Date"].dt.year
+seasonal = seasonal_df.groupby(["Product Name", "Month"])["Sales"].sum().unstack()
+seasonal_normalized = seasonal.div(seasonal.sum(axis=1), axis=0)
+seasonal_products = seasonal_normalized.idxmax(axis=1)
+print(seasonal_products)
+seasonal_temp = seasonal.max(axis=1) / seasonal.sum(axis=1)
+seasonal_df = seasonal_df.merge(seasonal_temp.rename("Seasonality.Index"), how="left", left_on="Product Name", right_index=True)
+features_seasonal = ["Sales", "Profit", "Shipping.Cost", "Seasonality.Index"]
+# there is nan somewhere
+# replacing nan values with mean value
+X_seasonal = seasonal_df[features_seasonal]
+scaler = StandardScaler()
+X_seasonal_scaled = scaler.fit_transform(X_seasonal)
+kmeans_seasonal = KMeans(n_clusters=5, random_state=42)
+seasonal_df["Cluster"] = kmeans_seasonal.fit_predict(X_seasonal_scaled)
+seasonal_summary = seasonal_df.groupby("Cluster")[features].mean()
+print(seasonal_summary)
+fig_seasonal = px.scatter(
+    seasonal_df,
+    x="Profit",
+    y="Seasonality.Index",
+    color="Cluster",
+    color_continuous_scale="viridis",
+    size=None,
+    title="Seasonality Index and Profit Optimization",
+    labels={"Cluster": "Cluster", "Profit": "Profit", "Shipping.Cost": "Shipping Cost"}
+)
+
+
 profits = order_sales_customers.groupby("Country").agg({"Profit" : "sum"}).reset_index()
 
 map_profit_fig = px.choropleth(

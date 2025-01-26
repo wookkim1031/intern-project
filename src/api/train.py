@@ -9,6 +9,10 @@ import json
 from io import StringIO 
 import plotly.express as px
 import math
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Load configuration for the CSV URL
 with open("config.json", "r") as file:
@@ -130,11 +134,18 @@ def get_map_list():
 
 @app.route("/products/<product_name>/<country>/<city>", methods=["GET"])
 def get_product_data(product_name, country, city):
-    product_data = order_sales_customers_products[(order_sales_customers_products["Product Name"] == product_name)]
+    if product_name != "all":
+        product_data = order_sales_customers_products[(order_sales_customers_products["Product Name"] == product_name)]
+    else: 
+        product_data = order_sales_customers_products
     if country != "all": 
         product_data = product_data[product_data["Country"] == country]
     if city != "all":
         product_data = product_data[product_data["City"] == city]
+    countries_product = product_data["Country"].unique()
+    countries_list = countries_product.tolist()
+    cities_product = product_data["City"].unique()
+    cities_list = cities_product.tolist()
     len_customers = product_data["Customer.ID"].nunique()
     len_orders = product_data["Order.ID"].nunique()
     len_products = product_data["Product.ID"].nunique()
@@ -175,6 +186,8 @@ def get_product_data(product_name, country, city):
     fig_profit_over_time_json = fig_profit_over_time.to_plotly_json()
     fig_profit_over_time_json_serializable = json.loads(json.dumps(fig_profit_over_time_json, default=convert_to_serializable))
     return jsonify({
+        "countries_list": countries_list,
+        "cities_list"  : cities_list,
         "customers": len_customers,
         "orders": len_orders,
         "products": len_products,
@@ -280,10 +293,160 @@ def get_country_data(country_name, year, city):
         "sunburst_products": sunburst_json_serializable
     })
 
+@app.route("/advanced_metrics", methods=["GET"])    
+def advanced_metrics_func(): 
+    features = ["Sales", "Profit", "Shipping.Cost"]
+    X = order_sales_customers_products[features] 
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    kmeans = KMeans(n_clusters=5, random_state=42)
+    kmeans.fit(X_scaled)
+    order_sales_customers_products["Cluster"] = kmeans.labels_
+    cluster_summary = order_sales_customers_products.groupby("Cluster")[features].mean().reset_index()
+    print(cluster_summary)
+    fig = px.scatter(
+        order_sales_customers_products,
+        x="Profit",
+        y="Shipping.Cost",
+        color="Cluster",
+        color_continuous_scale="viridis",
+        size=None,
+        title="Optimization of Sales using KMeans Clustering",
+        labels={"Cluster": "Cluster", "Profit": "Profit", "Shipping.Cost": "Shipping Cost"}
+    )
+    fig_kmeans_json = fig.to_plotly_json()
+    fig_kmeans_serializable = json.loads(json.dumps(fig_kmeans_json, default=convert_to_serializable))
+    # to see the seasionality 
+    seasonal_df = order_sales_customers_products[["Order.Date", "Product Name", "Sales", "Profit", "Shipping.Cost"]]
+    seasonal_df["Order.Date"] = pd.to_datetime(seasonal_df["Order.Date"])
+    seasonal_df["Month"] = seasonal_df["Order.Date"].dt.month
+    seasonal_df["Year"] = seasonal_df["Order.Date"].dt.year
+    seasonal = seasonal_df.groupby(["Product Name", "Month"])["Sales"].sum().unstack()
+    seasonal_normalized = seasonal.div(seasonal.sum(axis=1), axis=0)
+    seasonal_products = seasonal_normalized.idxmax(axis=1)
+    print(seasonal_products)
+    seasonal_temp = seasonal.max(axis=1) / seasonal.sum(axis=1)
+    seasonal_df = seasonal_df.merge(seasonal_temp.rename("Seasonality.Index"), how="left", left_on="Product Name", right_index=True)
+    features_seasonal = ["Sales", "Profit", "Shipping.Cost", "Seasonality.Index"]
+    # there is nan somewhere
+    # replacing nan values with mean value 
+    X_seasonal = seasonal_df[features_seasonal]
+    scaler = StandardScaler()
+    X_seasonal_scaled = scaler.fit_transform(X_seasonal)
+    kmeans_seasonal = KMeans(n_clusters=5, random_state=42)
+    seasonal_df["Cluster"] = kmeans_seasonal.fit_predict(X_seasonal_scaled)
+    seasonal_summary = seasonal_df.groupby("Cluster")[features].mean()
+    print(seasonal_summary)
+    fig_seasonal = px.scatter(
+        seasonal_df,
+        x="Profit",
+        y="Seasonality.Index",
+        color="Cluster",
+        color_continuous_scale="viridis",
+        size=None,
+        title="Seasonality Index and Profit Optimization",
+        labels={"Cluster": "Cluster", "Profit": "Profit", "Shipping.Cost": "Shipping Cost"}
+    )
+    fig_seasonal_json = fig_seasonal.to_plotly_json()
+    fig_seasonal_serializable = json.loads(json.dumps(fig_seasonal_json, default=convert_to_serializable))
+    # Define the 5 most and least trending product (using 365 days data)
+    # Compare the trending between the year_before and now 
+    order_sales_customers_products["Order.Date"] = pd.to_datetime(order_sales_customers_products["Order.Date"])
+    end_date = order_sales_customers_products["Order.Date"].max()
+    start_date = end_date - pd.Timedelta(days=365)
+    recent_sales = order_sales_customers_products[order_sales_customers_products["Order.Date"].between(start_date, end_date)]
+    product_sales = recent_sales.groupby("Product Name")["Sales"].sum().reset_index()
+    # The trending of the previosu year 
+    previous_start_date = start_date - pd.Timedelta(days=365)
+    previous_sales = order_sales_customers_products[order_sales_customers_products["Order.Date"].between(previous_start_date, start_date)]
+    previous_product_sales = previous_sales.groupby("Product Name")["Sales"].sum().reset_index()
+    growing = pd.merge(
+        product_sales,
+        previous_product_sales,
+        on="Product Name",
+        suffixes=("_recent", "_previous"),
+    )
+    growing["Growth"] = (growing["Sales_recent"] - growing["Sales_previous"])
+    growing["Growth"].fillna(0, inplace=True)
+    grow_sort = growing.sort_values(by="Growth", ascending=False)
+    top_5 = grow_sort.head(5)
+    bottom_5 = grow_sort.tail(5)
+    trending_prod = pd.concat([top_5, bottom_5])
+    trending_prod["Trend"] = ["Trending"] * 5 + ["Non-Trending"] * 5
+    fig_trending = px.bar(
+        trending_prod,
+        x="Product Name",
+        y="Growth",
+        color="Trend",
+        title="top 5 most trending and least trending product (Comapred with last year)",
+        labels={"Growth": "Sales Growth (%)", "Product Name": "Product"},
+        color_discrete_map={"Trending": "green", "Non-Trending": "red"},
+    )
+    fig_trending.update_layout(
+        xaxis_title="Product",
+        yaxis_title="Sales Growth (%)",
+        showlegend=True,
+    )
+    fig_trending_json = fig_trending.to_plotly_json()
+    fig_trending_serial = json.loads(json.dumps(fig_trending_json, default=convert_to_serializable))
+    # Goal: To find the most profitable country, emerging country, decling country, not profitable coountry
+    group_country_sales = recent_sales.groupby("Country")["Sales"].sum().reset_index()
+    previous_group_country_sales = previous_sales.groupby("Country")["Sales"].sum().reset_index()
+    growth_by_country = pd.merge(
+        group_country_sales, previous_group_country_sales, on="Country", suffixes=("_recent", "_previous")
+    )
+    # current sales - previous sales dividde by previous sales to see the correlation between previous year and current year
+    growth_by_country["Growth"] = ((growth_by_country["Sales_recent"] - growth_by_country["Sales_previous"]) / growth_by_country["Sales_previous"])*100
+    growth_by_country["Growth"].fillna(0, inplace=True)
+    most_sold_country = growth_by_country.loc[growth_by_country["Sales_recent"].idxmax()]
+    least_sold_country = growth_by_country.loc[growth_by_country["Sales_recent"].idxmin()]
+    emerging_country = growth_by_country.loc[growth_by_country["Growth"].idxmax()]
+    decling_country = growth_by_country.loc[growth_by_country["Growth"].idxmin()]
+    visualization_data = pd.DataFrame({
+        "Country": [most_sold_country["Country"], least_sold_country["Country"], emerging_country["Country"], decling_country["Country"]],
+        "Category": ["Most Sold", "Least Sold", "Emerging", "Decreasing"],
+        "Sales": [most_sold_country["Sales_recent"], least_sold_country["Sales_recent"], emerging_country["Sales_recent"], decling_country["Sales_recent"]],
+        "Growth": [most_sold_country["Growth"], least_sold_country["Growth"], emerging_country["Growth"], decling_country["Growth"]],
+    })
+    fig_sales = px.bar(
+        visualization_data,
+        x="Country",
+        y="Sales",
+        color="Category",
+        title="Sales by Country (Last year)",
+        labels={"Sales": "Total Sales", "Country": "Country"},
+        text="Sales",
+    )
+    fig_sales.add_scatter(
+        x=visualization_data["Country"],
+        y=visualization_data["Growth"],
+        mode="lines+markers+text",
+        name="Growth percentage",
+        text=visualization_data["Growth"],
+        textposition="top center",
+        line=dict(color="red", width=2),
+        yaxis="y2",
+    )
+    fig_sales.update_layout(
+        xaxis_title="Country",
+        yaxis_title="Total Sales",
+        yaxis2=dict(title="Growth percentage", overlaying="y", side="right"),
+        showlegend=True,
+    )
+    fig_sales_json = fig_sales.to_plotly_json()
+    fig_sales_serial = json.loads(json.dumps(fig_sales_json, default=convert_to_serializable))
+    return jsonify({"kmeans": fig_kmeans_serializable, "seasonal": fig_seasonal_serializable, "trending": fig_trending_serial, "sales_growth": fig_sales_serial})
+
 @app.route("/comparison/<country_1>/<country_2>", methods=["GET"])
 def get_comparison(country_1, country_2):
-    country1_df = order_sales_customers_products[order_sales_customers_products["Country"] == country_1]
-    country2_df = order_sales_customers_products[order_sales_customers_products["Country"] == country_2]
+    if country_1 != "all":
+        country1_df = order_sales_customers_products[order_sales_customers_products["Country"] == country_1]
+    else: 
+        country1_df = order_sales_customers_products
+    if country_2 != "all":
+        country2_df = order_sales_customers_products[order_sales_customers_products["Country"] == country_2]
+    else:
+        country2_df = order_sales_customers_products
     def calculate_metrics_sales_profit_shipping(df, country): 
         return {
             "country": country, 

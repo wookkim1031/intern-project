@@ -28,6 +28,43 @@ const Product = () => {
             .catch((error) => console.error("Error fetching products data", error));
     },[]);
 
+    // after product changes 
+    // countries and cities need to be changed
+    // TODO: when couuntries and cities change the product also has to change
+    useEffect(() => {
+        if(product !== "all") {
+            axios.get(`http://127.0.0.1:5000/products/${product}/${country}/${city}`)
+            .then((response) => {
+                setCountries(response.data.countries_list || []);
+                setCities(response.data.cities_list || []);
+            })
+            .catch((error) => {
+                console.error("Error fetching countries data", error);
+            });
+        } else {
+            axios.get(`http://127.0.0.1:5000/products`)
+            .then((response) => {
+                setCountries(response.data.countries);
+                setCities(response.data.cities);
+            }).catch((error) => {
+                console.error("Error fetching countries data", error);
+            });
+        }},[product]);
+
+    // change when the product and country variable changes 
+    useEffect(() => {
+        if(product !== "all" && country !== "all") {
+            axios.get(`http://127.0.0.1:5000/products/${product}/${country}/${city}`)
+                .then((response) => {
+                    setCities(response.data.cities_lists || []);
+                    setCity("all");
+                })
+                .catch((error) => {
+                    console.error("Error fetching cities data", error);
+                })
+        }
+    }, [product, country]);
+
     useEffect(() => {
         setLoading(true);
         axios.get(`http://127.0.0.1:5000/products/${product}/${country}/${city}`)

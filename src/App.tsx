@@ -18,7 +18,7 @@ const App = () => {
             <li><Link to="/map">World Map</Link></li>
             <li><Link to="/comparison">Comparison</Link></li>
             <li><Link to="/dashboard">Dashboard</Link></li>
-            <li><Link to="/advanced_metries">Advanced metrics</Link></li>
+            <li><Link to="/advanced_metrics">Advanced metrics</Link></li>
             <li><Link to="/products">Products</Link></li>
           </ul>
         </nav>

@@ -76,7 +76,7 @@ export default function Dashboard() {
 
     return (
     <div>
-      <h2>Upload CSV FIles: Orders.csv, Sales.csv, Customers.csv, and Products.csv</h2>
+      <h2>Ignore this page </h2>
       <div>
         <button onClick={handleProcessCsv}>
             Process CSV

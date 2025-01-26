@@ -8,8 +8,8 @@ type PlotlyChartData = {
 };
 
 const ComparisonPage = () => {
-  const [country1, setCountry1] = useState("Germany");
-  const [country2, setCountry2] = useState("France");
+  const [country1, setCountry1] = useState("all");
+  const [country2, setCountry2] = useState("Germany");
   const [loading, setLoading] = useState<boolean>(true);
   const [bar1Chart, setBar1Chart] = useState<PlotlyChartData | null>(null);
   const [bar2Chart, setBar2Chart] = useState<PlotlyChartData | null>(null);
@@ -46,6 +46,7 @@ const ComparisonPage = () => {
       <div>
         <label htmlFor="country1">Select Country 1: </label>
         <select onChange={handleCountry1Change} id="country1DropDown" value={country1}>
+          <option value="all">All Products</option>
           {countries.length > 0 ? (
             countries.map((country) => (
               <option key={country} value={country}>{country}</option>
@@ -57,7 +58,8 @@ const ComparisonPage = () => {
       </div>
       <div>
         <label htmlFor="country2">Select Country 2: </label>
-        <select onChange={handleCountry2Change} id="country2DropDown" value={country2}>
+          <select onChange={handleCountry2Change} id="country2DropDown" value={country2}>
+          <option value="all">All Products</option>
           {countries.length > 0 ? (
             countries.map((country) => (
               <option key={country} value={country}>{country}</option>
