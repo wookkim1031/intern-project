@@ -1,4 +1,4 @@
-# BMW Sales Strategy Optimization
+# Sales Strategy Optimization
 
 This project focuses on optimizing BMW’s sales strategy through data-driven insights and machine learning models. The goal is to assist BMW in making informed decisions about marketing, inventory management, and sales patterns across different countries. This application includes interactive dashboards, machine learning predictions, and solutions to address deployment challenges.
 
@@ -111,3 +111,65 @@ This project delivers a robust solution for optimizing BMW’s sales strategy by
    ```bash
    git clone https://github.com/your-username/bmw-sales-strategy.git
    cd bmw-sales-strategy
+
+---
+
+# Thoughts of Task 2
+
+
+
+
+---
+
+# Thoughts of Task 3
+
+Natural Language Integration for Dashboard Interaction 
+
+- Hugging face is popular model with large community and „easy“ way to use various transformer models (other option: TensorFlow Hub) 
+    - Research Institution: Meta AI, Google AI 
+- Hugging face good for the institution, because only need to download once
+- Use GCP (using VERTEX AI or Cloud Run) to host hugging face model
+    - Ex. S
+    - DeepSeek-R1 (can not be fined tuned but a massive LLM model)
+        - Transformer can be downloaded on HuggingFace
+        - Downside Huge Hardware Requirements (16GB+) and Memory Usage
+        - Security not proven 
+    - https://huggingface.co/billatsectorflow/stella_en_1.5B_v5?language=python (https://huggingface.co/spaces/mteb/leaderboard) 
+        - Least GPU used. 
+        - In such task which not a lot of people use. Huge model is unnecessary
+    - For large audience 
+        - Lima, Gemini,
+            - Security of data leakage very important
+- Beside the project, run centralised evaluation and visualisations results
+    - Evaluate the model using open source project: mlCheck and LLMEval
+- Fine tune hugging face models on GCP 
+    1. Feeding more data onto the the datasets covering diverse tasks and domains
+    2. Encourage coworkers to work and evaluate the data because I can not do it alone 
+    * With VERTEX AI, Leverage TPUs/GPUs on GCP for efficient fine-tuning of Hugging Face models.
+- Evaluate the model comprehensively 
+    - Define its strength and limitations 
+    - Resource Requirements: computational availability in BMW 
+    - Compare LLM models use to test the datasets and see which model is the most suitable one
+- Docker and Kubernetes: 
+    - Create a central artifactory repository to store and approve the data. Docker brings along the benefit of wide use and version control 
+    - Helps with vulnerability check. Whether the Model meets the security requirements from BMW
+    * Central Artifactory Repository:
+        * Store models and datasets securely.
+        * Approve versions before deployment
+- Give access control 
+    - Important to authorise users that should be allowed to use the program 
+- Last step: monitoring 
+    - Monitor how the model is working 
+    - Version control: when the improvements are needed. Need a pipeline which can update the model continuously throughout the Quartal. 
+
+- Integrate the model with the Dashboard
+    - With the use of APIs 
+- * Warning a lot of „POST“ testing required to fine tune. (POSTMAN tool)
+
+
+- Step 1: User Interaction
+    - 1. Propose custom question textarea
+    - 2. Propose recommended frequent asked questions (Prompt engineering use prompts to answer the questions) 
+- Step 2: Divide into Recommended prompt or frequent asked questions
+- Step 3: Invoke LLM Analysis (can use GCP model or hugging face model) but need to find an appropriate model 
+- Step 4: Maintaining the history in order to improve and fine tune the model. 
