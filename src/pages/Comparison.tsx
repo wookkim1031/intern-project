@@ -8,27 +8,30 @@ type PlotlyChartData = {
 };
 
 const ComparisonPage = () => {
-  const [country1, setCountry1] = useState("");
-  const [country2, setCountry2] = useState("");
+  const [country1, setCountry1] = useState("Germany");
+  const [country2, setCountry2] = useState("France");
   const [loading, setLoading] = useState<boolean>(true);
-  const [chartData, ] = useState<PlotlyChartData | null>(null);
+  const [bar1Chart, setBar1Chart] = useState<PlotlyChartData | null>(null);
+  const [bar2Chart, setBar2Chart] = useState<PlotlyChartData | null>(null);
+  const [lineChart, setLineChart] = useState<PlotlyChartData | null>(null);
   const [countries, setCountries] = useState<string[]>([]);
 
   useEffect(() => {
     axios.get("http://127.0.0.1:5000/countries")
       .then((response) => {
-          setCountry1(response.data.countries[0]);
-          setCountry2(response.data.countries[1]);
           setCountries(response.data.countries)})
       .catch((error) => console.error("Error fetching time interval data:", error));
   }, []);
 
+
   useEffect(() => {
-    axios.get("http://127.0.0.1:5000/comparison/${country1}/${country2}").
+    axios.get(`http://127.0.0.1:5000/comparison/${country1}/${country2}`).
       then((response) => {
-        
-      }
-  })
+        setBar1Chart(response.data.bar_1_chart);
+        setBar2Chart(response.data.bar_2_chart);
+        setLineChart(response.data.line_sales_chart);})        
+      .catch((error) => console.error("Error fetching comparison data:", error));
+  },[country1, country2]); 
 
   const handleCountry1Change = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCountry1(e.target.value);
@@ -44,9 +47,9 @@ const ComparisonPage = () => {
         <label htmlFor="country1">Select Country 1: </label>
         <select onChange={handleCountry1Change} id="country1DropDown" value={country1}>
           {countries.length > 0 ? (
-            countries.map((country) => 
-              <option value={country}>{country}</option>
-            ) 
+            countries.map((country) => (
+              <option key={country} value={country}>{country}</option>
+            ))
           ) : (
             <option disabled>No countries available</option>
           )}
@@ -56,13 +59,18 @@ const ComparisonPage = () => {
         <label htmlFor="country2">Select Country 2: </label>
         <select onChange={handleCountry2Change} id="country2DropDown" value={country2}>
           {countries.length > 0 ? (
-            countries.map((country) => 
-              <option value={country}>{country}</option>
-            ) 
+            countries.map((country) => (
+              <option key={country} value={country}>{country}</option>
+            ))
           ) : (
             <option disabled>No countries available</option>
           )}
         </select>
+      </div>
+      <div>
+        <Plot data={bar1Chart?.data} layout={bar1Chart?.layout} />
+        <Plot data={bar2Chart?.data} layout={bar2Chart?.layout} />
+        <Plot data={lineChart?.data} layout={lineChart?.layout} />
       </div>
     </div>
   );

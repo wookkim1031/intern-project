@@ -64,6 +64,16 @@ def get_countries_list():
     countries_list = countries.tolist()
     return jsonify({"countries": countries_list}) 
 
+@app.route("/products" , methods=["GET"])
+def get_products_list():
+    products = products_df["Product Name"].unique()
+    products_list = products.tolist()
+    countries = customers_df["Country"].unique()
+    countries_list = countries.tolist()
+    cities = customers_df["City"].unique()
+    cities_list = cities.tolist()
+    return jsonify({"products": products_list, "countries": countries_list, "cities": cities_list})
+
 @app.route("/countries/<country>/cities", methods=["GET"])
 def get_cities(country):
     country_data = customers_df[customers_df["Country"] == country]
@@ -116,6 +126,62 @@ def get_map_list():
         "map_profit_fig": map_profit_json_serializable,
         "map_shipping_fig": map_shipping_json_serializable,
         "map_customers_fig": map_customers_json_serializable
+    })
+
+@app.route("/products/<product_name>/<country>/<city>", methods=["GET"])
+def get_product_data(product_name, country, city):
+    product_data = order_sales_customers_products[(order_sales_customers_products["Product Name"] == product_name)]
+    if country != "all": 
+        product_data = product_data[product_data["Country"] == country]
+    if city != "all":
+        product_data = product_data[product_data["City"] == city]
+    len_customers = product_data["Customer.ID"].nunique()
+    len_orders = product_data["Order.ID"].nunique()
+    len_products = product_data["Product.ID"].nunique()
+    total_sales = product_data["Sales"].sum()
+    total_profit = product_data["Profit"].sum()
+    total_profit = math.ceil(total_profit)
+    # Sales over time
+    sales_over_time = product_data.groupby('Order.Date')['Sales'].sum().reset_index()
+    fig_sales_over_time = px.line(
+        sales_over_time,
+        x='Order.Date',
+        y='Sales',
+        title=f'Sales Over Time for {product_name} in {city}, {country}',
+        labels={'Sales': 'Total Sales', 'Order.Date': 'Date'}
+    )
+    fig_sales_over_time_json = fig_sales_over_time.to_plotly_json()
+    fig_sales_over_time_json_serializable = json.loads(json.dumps(fig_sales_over_time_json, default=convert_to_serializable))
+    # Profit over time
+    profit_over_time = product_data.groupby('Order.Date').agg({
+        'Profit': 'sum',
+        'Shipping.Cost': 'sum',
+        'Sales': 'sum'
+    }).reset_index()
+    fig_profit_over_time = px.line(
+        profit_over_time,
+        x='Order.Date',
+        y=['Profit', 'Shipping.Cost', 'Sales'],
+        title=f'Profit, Shipping Cost, and Sales Over Time for {product_name} in {country}',
+        labels={'value': 'Amount', 'variable': 'Metric', 'Order.Date': 'Date'}
+    )
+    fig_profit_over_time.update_traces(line=dict(width=2))
+    fig_profit_over_time.update_layout(
+        legend_title_text='Metrics',
+        xaxis_title='Date',
+        yaxis_title='Amount',
+        hovermode='x unified'
+    )
+    fig_profit_over_time_json = fig_profit_over_time.to_plotly_json()
+    fig_profit_over_time_json_serializable = json.loads(json.dumps(fig_profit_over_time_json, default=convert_to_serializable))
+    return jsonify({
+        "customers": len_customers,
+        "orders": len_orders,
+        "products": len_products,
+        "total_sales": total_sales,
+        "total_profit": total_profit,
+        "sales_over_time": fig_sales_over_time_json_serializable,
+        "profit_over_time": fig_profit_over_time_json_serializable
     })
 
 @app.route("/countries/<country_name>/<year>/<city>", methods=["GET"])
@@ -214,9 +280,102 @@ def get_country_data(country_name, year, city):
         "sunburst_products": sunburst_json_serializable
     })
 
-@app.route("comparison/<country_1>/<country_2>", methods=["GET"])
+@app.route("/comparison/<country_1>/<country_2>", methods=["GET"])
 def get_comparison(country_1, country_2):
-    
+    country1_df = order_sales_customers_products[order_sales_customers_products["Country"] == country_1]
+    country2_df = order_sales_customers_products[order_sales_customers_products["Country"] == country_2]
+    def calculate_metrics_sales_profit_shipping(df, country): 
+        return {
+            "country": country, 
+            "total_sales": df["Sales"].sum(),
+            "total_profit": df["Profit"].sum(),
+            "total_shipping_costs": df["Shipping.Cost"].sum(),
+        }
+    country1_metric_high = calculate_metrics_sales_profit_shipping(country1_df, country_1)
+    country2_metric_high = calculate_metrics_sales_profit_shipping(country2_df, country_2)
+    def calculate_metrics_customers_orders_products(df, country):
+        return {
+            "country": country,
+            "total_customers": df["Customer.ID"].nunique(),
+            "total_orders": df["Order.ID"].nunique(),
+            "total_products": df["Product.ID"].nunique()
+        }
+    country1_metric = calculate_metrics_customers_orders_products(country1_df, country_1)
+    country2_metric = calculate_metrics_customers_orders_products(country2_df, country_2)
+    # generate bar chart for sales, profit, shipping cost 
+    def generate_charts_sales_profit_shipping(metrics_country1, metrics_country2, country1_name, country2_name):
+        bar_chart_data = {
+            "Metrics": ["Total Sales", "Total Profit", "Total Shipping Cost"],
+            country1_name: [
+                metrics_country1["total_sales"], metrics_country1["total_profit"], metrics_country1["total_shipping_costs"],
+            ],
+            country2_name: [
+                metrics_country2["total_sales"], metrics_country2["total_profit"], metrics_country2["total_shipping_costs"],
+            ]
+        }
+        df = pd.DataFrame(bar_chart_data)
+        df_melted = df.melt(id_vars="Metrics", var_name="Country", value_name="Value")
+        fig = px.bar(
+            df_melted,
+            x="Metrics", y="Value",
+            color="Country", barmode="group",  
+            title=f"Comparison of Sales, Profit, and Shipping Cost in {country1_name} and {country2_name}",
+            labels={"Value": "Values", "Metrics": "Metrics", "Country": "Country"},
+        )
+        fig_bar_json = fig.to_plotly_json()
+        return json.loads(json.dumps(fig_bar_json, default=convert_to_serializable))
+    # generate bar chart for customers, orders, products
+    def generate_charts_customers_orders_products(metrics_country1, metrics_country2, country1_name, country2_name):
+        bar_chart_data_2 = {
+            "Metrics": ["Customers", "Orders", "Products"],
+            country1_name: [
+                metrics_country1["total_customers"], metrics_country1["total_orders"], metrics_country1["total_products"]
+            ],
+            country2_name: [
+                metrics_country2["total_customers"], metrics_country2["total_orders"], metrics_country2["total_products"]
+            ]
+        }
+        df_2 = pd.DataFrame(bar_chart_data_2)
+        df_melted_2 = df_2.melt(id_vars="Metrics", var_name="Country", value_name="Value")
+        fig_2 = px.bar(
+            df_melted_2,
+            x="Metrics", y="Value",
+            color="Country", barmode="group", 
+            title=f"Comparison of Customers, Orders, and Products in {country1_name} and {country2_name}",
+            labels={"Value": "Values", "Metrics": "Metrics", "Country": "Country"},
+        )
+        fig_bar_2_json = fig_2.to_plotly_json()
+        return json.loads(json.dumps(fig_bar_2_json, default=convert_to_serializable))
+    def generate_line_chart(metrics_country1, metrics_country2, country1_name, country2_name):
+        sales_over_time_country1 = metrics_country1.groupby('Order.Date')['Sales'].sum().reset_index()
+        sales_over_time_country2 = metrics_country2.groupby('Order.Date')['Sales'].sum().reset_index()
+        fig_line_sales = px.line(
+            sales_over_time_country1,
+            x='Order.Date',
+            y='Sales',
+            title=f'Sales over Time: {country1_name} vs {country2_name}',
+            labels={'Sales': 'Total Sales', 'Order.Date': 'Date'},
+            line_shape="spline"
+        )
+        fig_line_sales.add_scatter(
+            x=sales_over_time_country2['Order.Date'],
+            y=sales_over_time_country2['Sales'],
+            mode='lines',
+            name=f'{country2_name} Sales',
+            line=dict(dash='dash') 
+        )
+        fig_line_sales.update_layout(
+            legend=dict(
+                title='Countries',
+                itemsizing='trace'
+            )
+        )
+        fig_line_sales_json = fig_line_sales.to_plotly_json()
+        return json.loads(json.dumps(fig_line_sales_json, default=convert_to_serializable))
+    return jsonify({"bar_1_chart": generate_charts_sales_profit_shipping(country1_metric_high, country2_metric_high, country_1, country_2), 
+                    "bar_2_chart": generate_charts_customers_orders_products(country1_metric, country2_metric, country_1, country_2), 
+                    "line_sales_chart" : generate_line_chart(country1_df, country2_df, country_1, country_2)})
+
 
 @app.route("/train", methods=["POST"])
 def train():
