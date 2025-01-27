@@ -17,7 +17,7 @@ const ComparisonPage = () => {
   const [countries, setCountries] = useState<string[]>([]);
 
   useEffect(() => {
-    axios.get("https://intern-project-c87y5550q-johan-kims-projects.vercel.app/countries")
+    axios.get("intern-project-liart.vercel.app/countries")
       .then((response) => {
           setCountries(response.data.countries)})
       .catch((error) => console.error("Error fetching time interval data:", error));

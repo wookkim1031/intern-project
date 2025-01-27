@@ -13,7 +13,7 @@ const MapPage = () => {
     const [costumerData, setCostumerChartData] = useState<PlotlyChartData | null>(null);
 
   useEffect(() => {
-    axios.get("https://intern-project-c87y5550q-johan-kims-projects.vercel.app/map")
+    axios.get("intern-project-liart.vercel.app/map")
       .then((response) => {
         setProfitChartData(response.data.map_profit_fig);
         setShippingChartData(response.data.map_shipping_fig);
