@@ -25,7 +25,7 @@ const ComparisonPage = () => {
 
 
   useEffect(() => {
-    axios.get(`https://intern-project-c87y5550q-johan-kims-projects.vercel.app/comparison/${country1}/${country2}`).
+    axios.get(`intern-project-liart.vercel.app/comparison/${country1}/${country2}`).
       then((response) => {
         setBar1Chart(response.data.bar_1_chart);
         setBar2Chart(response.data.bar_2_chart);

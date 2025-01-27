@@ -63,8 +63,6 @@ fig.update_layout(
 )
 fig.show()
 
-
-
 seasonal_df = order_sales_customers_products[["Order.Date", "Product Name", "Sales", "Profit", "Shipping.Cost"]]
 seasonal_df["Order.Date"] = pd.to_datetime(seasonal_df["Order.Date"])
 seasonal_df["Month"] = seasonal_df["Order.Date"].dt.month
