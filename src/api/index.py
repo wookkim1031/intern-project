@@ -53,8 +53,10 @@ def fetch_csv_once(Sales_url, Orders_url, Products_url, Customers_url):
     order_sales_customers = pd.merge(order_sales, customers_df, on="Customer.ID", how="left")
     order_sales_customers_products = pd.merge(order_sales_customers, products_df, on="Product.ID", how="left")
 
-@app.before_request 
 def load_csv():
+    if sales_df is not None and orders_df is not None and products_df is not None and customers_df is not None:
+        print("CSV files are already loaded.")
+        return
     print("Loading csv...")
     fetch_csv_once(Sales_url, Orders_url, Products_url, Customers_url)
 
@@ -70,6 +72,7 @@ def home():
 
 @app.route("/countries", methods=["GET"])
 def get_countries_list():
+    load_csv()
     countries = customers_df["Country"].unique()
     countries_list = countries.tolist()
     return jsonify({"countries": countries_list}) 
