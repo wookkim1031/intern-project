@@ -54,10 +54,11 @@ def fetch_csv_once(Sales_url, Orders_url, Products_url, Customers_url):
     order_sales_customers_products = pd.merge(order_sales_customers, products_df, on="Product.ID", how="left")
 
 def load_csv():
+    print("Loading csv...")
     if sales_df is not None and orders_df is not None and products_df is not None and customers_df is not None:
         print("CSV files are already loaded.")
-        return
-    print("Loading csv...")
+    return
+    print("Loading CSV files...")
     fetch_csv_once(Sales_url, Orders_url, Products_url, Customers_url)
 
 def convert_to_serializable(obj):
