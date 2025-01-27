@@ -28,10 +28,6 @@ Orders_url = config["csv_files"]["orders"]
 Products_url = config["csv_files"]["products"]  
 Customers_url = config["csv_files"]["customers"]  
 
-app = Flask(__name__)
-
-CORS(app, origins=["https://intern-project-liart.vercel.app", "https://intern-project-c87y5550q-johan-kims-projects.vercel.app"])
-
 sales_df = None
 orders_df = None
 products_df = None
