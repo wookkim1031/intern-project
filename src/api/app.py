@@ -41,6 +41,7 @@ order_sales_customers = None
 order_sales_customers_products = None
 
 def fetch_csv_once(Sales_url, Orders_url, Products_url, Customers_url): 
+    print("Fetching CSV files...")
     global sales_df, orders_df, products_df, customers_df, order_sales, order_sales_customers, order_sales_customers_products
     Customers_response = requests.get(Customers_url)
     Products_response = requests.get(Products_url)
