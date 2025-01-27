@@ -45,7 +45,7 @@ const CountriesPage = () => {
 
     useEffect(() => {
         if (selectedCountry) {
-            axios.get(`https://intern-project-c87y5550q-johan-kims-projects.vercel.app/ountries/${selectedCountry}/cities`)
+            axios.get(`https://intern-project-c87y5550q-johan-kims-projects.vercel.app/countries/${selectedCountry}/cities`)
                 .then((response) => {
                     setCities(response.data.cities);
                     setSelectedCities("all");
