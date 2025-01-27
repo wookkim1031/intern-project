@@ -19,6 +19,8 @@ import seaborn as sns
 with open("config.json", "r") as file:
     config = json.load(file)
 
+CORS(app)
+
 Sales_url = config["csv_files"]["sales"]  
 Orders_url = config["csv_files"]["orders"]  
 Products_url = config["csv_files"]["products"]  
@@ -53,12 +55,18 @@ def fetch_csv_once(Sales_url, Orders_url, Products_url, Customers_url):
 
 @app.before_request 
 def load_csv():
+    print("Loading csv...")
     fetch_csv_once(Sales_url, Orders_url, Products_url, Customers_url)
 
 def convert_to_serializable(obj):
     if isinstance(obj, np.ndarray):
         return obj.tolist()  
     raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+@app.route("/", methods=["GET"])
+def home():
+    print("fetch csv")
+    fetch_csv_once(Sales_url, Orders_url, Products_url, Customers_url)
 
 @app.route("/countries", methods=["GET"])
 def get_countries_list():
