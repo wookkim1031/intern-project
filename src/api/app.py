@@ -3,7 +3,7 @@ from flask_cors import CORS  # Import flask-cors
 
 app = Flask(__name__)
 
-CORS(app)
+CORS(app, origins=["https://intern-project-liart.vercel.app"])
 
 @app.route("/train", methods=["POST"])
 def train():
