@@ -27,7 +27,7 @@ Customers_url = config["csv_files"]["customers"]
 
 app = Flask(__name__)
 
-CORS(app, origins=["http://localhost:3000"])
+CORS(app, origins=["https://intern-project-liart.vercel.app"])
 
 sales_df = None
 orders_df = None
@@ -617,4 +617,5 @@ def train():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    port = int(os.environ.get("PORT", 5000)) 
+    app.run(host="0.0.0.0", port=port)
