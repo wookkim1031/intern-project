@@ -15,7 +15,7 @@ const AdvancedMetricsPage = () => {
     const [highValue, setHighValue] = useState<PlotlyChartData | null>(null);
 
     useEffect(() => {
-        axios.get("https://intern-project-liart.vercel.app/advanced_metrics").then((response) => {
+        axios.get("https://intern-project-c87y5550q-johan-kims-projects.vercel.app/advanced_metrics").then((response) => {
             setkMeansChart(response.data.kmeans);
             setSeasonalChart(response.data.seasonal);
             setTrendingChart(response.data.trending);
