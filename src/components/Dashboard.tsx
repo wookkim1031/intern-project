@@ -76,7 +76,7 @@ export default function Dashboard() {
 
     return (
     <div>
-      <h2>Ignore this page </h2>
+      <h2>Ignore this page</h2>
       <div>
         <button onClick={handleProcessCsv}>
             Process CSV

@@ -11,6 +11,8 @@ import plotly.express as px
 import math
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from mlxtend.frequent_patterns import apriori, association_rules
+from mlxtend.preprocessing import TransactionEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -435,7 +437,50 @@ def advanced_metrics_func():
     )
     fig_sales_json = fig_sales.to_plotly_json()
     fig_sales_serial = json.loads(json.dumps(fig_sales_json, default=convert_to_serializable))
-    return jsonify({"kmeans": fig_kmeans_serializable, "seasonal": fig_seasonal_serializable, "trending": fig_trending_serial, "sales_growth": fig_sales_serial})
+    # calculate
+    customer_data = order_sales_customers_products.groupby("Customer.ID").agg({
+        "Sales": "sum",               
+        "Order.ID": "nunique",        
+        "Order.Date": "max"           
+    }).reset_index()
+    customer_data.columns = ["Customer.ID", "Total_Sales", "Count_Orders", "last_purchase_date"]
+    # Calculate recency (days since last purchase)
+    customer_data["last_purchase_date"] = pd.to_datetime(customer_data["last_purchase_date"])
+    current_date = pd.to_datetime(order_sales_customers_products["Order.Date"].max())
+    customer_data["Recency"] = (current_date - customer_data["last_purchase_date"]).dt.days
+    high_value_threshold = customer_data["Total_Sales"].quantile(0.8)
+    high_value_customers = customer_data[customer_data["Total_Sales"] >= high_value_threshold]
+    frequent_buyer_threshold = customer_data["Count_Orders"].quantile(0.8)
+    frequent_buyers = customer_data[customer_data["Count_Orders"] >= frequent_buyer_threshold]
+    at_risk_customers = customer_data[customer_data["Recency"] > 180]
+    at_risk_threshold = 180
+    customer_data["Segment"] = "Regular"
+    customer_data.loc[customer_data["Total_Sales"] >= high_value_threshold, "Segment"] = "High-Value"
+    customer_data.loc[customer_data["Count_Orders"] >= frequent_buyer_threshold, "Segment"] = "Frequent Buyer"
+    customer_data.loc[customer_data["Recency"] > at_risk_threshold, "Segment"] = "At-Risk"
+    fig_high_value = px.scatter(
+        customer_data,
+        x="Count_Orders",
+        y="Total_Sales",
+        color="Segment",
+        size="Recency",
+        hover_name="Customer.ID",
+        title="Risk evaluation",
+        labels={
+            "Count_Orders": "Number of Orders",
+            "Total_Sales": "Sales Total",
+            "Segment": "Customer Segment"
+        }
+    )
+    fig_high_value.update_layout(
+        xaxis_title="Number of Orders",
+        yaxis_title="Sales Total",
+        legend_title="Customer Segment",
+        hovermode="closest"
+    )
+    fig_high_json = fig_high_value.to_plotly_json()
+    fig_high_serializable = json.loads(json.dumps(fig_high_json, default=convert_to_serializable))
+    return jsonify({"kmeans": fig_kmeans_serializable, "seasonal": fig_seasonal_serializable, "trending": fig_trending_serial, "sales_growth": fig_sales_serial, "high_value": fig_high_serializable})
 
 @app.route("/comparison/<country_1>/<country_2>", methods=["GET"])
 def get_comparison(country_1, country_2):

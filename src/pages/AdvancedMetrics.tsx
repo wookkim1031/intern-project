@@ -12,6 +12,7 @@ const AdvancedMetricsPage = () => {
     const [seasonalChart, setSeasonalChart] = useState<PlotlyChartData | null>(null);
     const [trendingChart, setTrendingChart] = useState<PlotlyChartData | null>(null);
     const [countryTrendingChart, setCountryTrendingChart] = useState<PlotlyChartData | null>(null);
+    const [highValue, setHighValue] = useState<PlotlyChartData | null>(null);
 
     useEffect(() => {
         axios.get("http://127.0.0.1:5000/advanced_metrics").then((response) => {
@@ -19,6 +20,7 @@ const AdvancedMetricsPage = () => {
             setSeasonalChart(response.data.seasonal);
             setTrendingChart(response.data.trending);
             setCountryTrendingChart(response.data.sales_growth);
+            setHighValue(response.data.high_value);
         })
         },[]);
     return ( 
@@ -29,6 +31,7 @@ const AdvancedMetricsPage = () => {
                 <Plot data={seasonalChart?.data} layout={seasonalChart?.layout} />
                 <Plot data={trendingChart?.data} layout={trendingChart?.layout} />
                 <Plot data={countryTrendingChart?.data} layout={countryTrendingChart?.layout} />
+                <Plot data={highValue?.data} layout={highValue?.layout} />
             </div>
         </div>
      );        

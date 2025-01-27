@@ -8,8 +8,8 @@ CORS(app, origins=["http://localhost:3000"])
 
 @app.route("/train", methods=["POST"])
 def train():
-    # Your existing code
     return jsonify({"message": "CORS is enabled!"})
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(debug=True)
+    #app.run(port=5000)
