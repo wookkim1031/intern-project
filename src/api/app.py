@@ -19,6 +19,8 @@ import seaborn as sns
 with open("config.json", "r") as file:
     config = json.load(file)
 
+app = Flask(__name__)
+
 CORS(app)
 
 Sales_url = config["csv_files"]["sales"]  
