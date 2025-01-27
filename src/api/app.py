@@ -16,7 +16,10 @@ from mlxtend.preprocessing import TransactionEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load configuration for the CSV URL
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('static', 'manifest.json')
+
 with open("config.json", "r") as file:
     config = json.load(file)
 
