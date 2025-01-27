@@ -16,10 +16,6 @@ from mlxtend.preprocessing import TransactionEncoder
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-@app.route('/manifest.json')
-def manifest():
-    return send_from_directory('static', 'manifest.json')
-
 with open("config.json", "r") as file:
     config = json.load(file)
 
