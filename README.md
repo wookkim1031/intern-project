@@ -7,20 +7,20 @@ This project focuses on optimizing sales strategy through data-driven insights a
 ## Use Cases
 
 ### Marketing Optimization
-- Identify which car models need additional marketing efforts based on their value and sales trends.
+- Identify which product need additional marketing efforts based on their value and sales trends.
 
 ### Inventory Management
-- Determine which car models should be stored in larger quantities in specific countries to meet demand.
+- Determine which product should be stored in larger quantities in specific countries to meet demand.
 
 ### Product Insights
-- Understand which car models are the most popular in different countries.
+- Understand which product are the most popular in different countries.
 - Analyze sales trends of specific models during different time periods.
 
 ### Seasonal Sales
 - Detect seasonal trends to help optimize marketing campaigns and inventory planning.
 
 ### Machine Learning Predictions
-- Predict which car models are likely to sell the most in specific countries, enabling proactive decision-making.
+- Predict which product are likely to sell the most in specific countries, enabling proactive decision-making.
 
 ---
 
@@ -56,18 +56,18 @@ This project focuses on optimizing sales strategy through data-driven insights a
 
 - **Interactive Dashboards**:
   - Visualize sales, product trends, and seasonal patterns.
-  - Filter data by date, country, car model, and other categories.
+  - Filter data by date, country, product, and other categories.
 
 - **Role-Based Access Control**:
   - Assign roles (e.g., managers, analysts, executives) to restrict visibility based on stakeholders’ needs.
 
 - **NLP Query Processing**:
-  - Enable natural language input for intuitive queries (e.g., *"Show the top 5 cars sold in Germany last quarter"*).
+  - Enable natural language input for intuitive queries (e.g., *"Show the top 5 products sold in Germany last quarter"*).
   - Implement confidence scoring for NLP-based queries to ensure accuracy.
   - Cache query results to improve performance.
 
 - **Machine Learning Predictions**:
-  - Predict the top-selling car models in specific countries using advanced ML algorithms.
+  - Predict the top-selling products in specific countries using advanced ML algorithms.
 
 ---
 
