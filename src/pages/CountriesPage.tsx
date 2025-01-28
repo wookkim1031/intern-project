@@ -33,7 +33,7 @@ const CountriesPage = () => {
     const [selectedCities, setSelectedCities] = useState("all");
 
     useEffect(() => {
-        axios.get("https://intern-project-liart.vercel.app/countries")
+        axios.get("https://flask-serverless.onrender.com/countries")
             .then((response) => {
                 console.log("Response data:", response.data);
                 setCountries(response.data.countries);
@@ -46,7 +46,7 @@ const CountriesPage = () => {
 
     useEffect(() => {
         if (selectedCountry) {
-            axios.get(`https://intern-project-liart.vercel.app/countries/${selectedCountry}/cities`)
+            axios.get(`https://flask-serverless.onrender.com/countries/${selectedCountry}/cities`)
                 .then((response) => {
                     setCities(response.data.cities);
                     setSelectedCities("all");
@@ -58,7 +58,7 @@ const CountriesPage = () => {
 
     useEffect(() => {
         if (selectedCountry) {
-            axios.get(`https://intern-project-liart.vercel.app/countries/${selectedCountry}/years`)
+            axios.get(`https://flask-serverless.onrender.com/countries/${selectedCountry}/years`)
                 .then((response) => {
                     setYears(response.data.years);
                     setSelectedYear("all");
@@ -70,7 +70,7 @@ const CountriesPage = () => {
     useEffect(() => {
         if (selectedCountry) {
             setIsLoading(true);
-            axios.get(`https://intern-project-liart.vercel.app/countries/${selectedCountry}/${selectedYear}/${selectedCities}`)
+            axios.get(`https://flask-serverless.onrender.com/countries/${selectedCountry}/${selectedYear}/${selectedCities}`)
                 .then((response) => {
                     setProfit(response.data.total_profit);
                     setLen_customers(response.data.customers);
