@@ -35,6 +35,7 @@ const CountriesPage = () => {
     useEffect(() => {
         axios.get("https://intern-project-liart.vercel.app/countries")
             .then((response) => {
+                console.log("Response data:", response.data);
                 setCountries(response.data.countries);
                 if (response.data.countries.length > 0) {
                     setSeleectedCountry(response.data.countries[0]);
