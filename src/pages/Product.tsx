@@ -19,7 +19,7 @@ const Product = () => {
     const [profitOverTime, setProfitOverTime] = useState<PlotlyChartData | null>(null);
 
     useEffect(() => {
-        axios.get(`https://intern-project-c87y5550q-johan-kims-projects.vercel.app/products`)
+        axios.get(`https://intern-project-liart.vercel.app/products`)
             .then((response) => {
                 setProducts(response.data.products);
                 setCountries(response.data.countries);
@@ -33,7 +33,7 @@ const Product = () => {
     // TODO: when couuntries and cities change the product also has to change
     useEffect(() => {
         if(product !== "all") {
-            axios.get(`https://intern-project-c87y5550q-johan-kims-projects.vercel.app/products/${product}/${country}/${city}`)
+            axios.get(`https://intern-project-liart.vercel.app/products/${product}/${country}/${city}`)
             .then((response) => {
                 setCountries(response.data.countries_list || []);
                 setCities(response.data.cities_list || []);
@@ -42,7 +42,7 @@ const Product = () => {
                 console.error("Error fetching countries data", error);
             });
         } else {
-            axios.get(`https://intern-project-c87y5550q-johan-kims-projects.vercel.app/products`)
+            axios.get(`https://intern-project-liart.vercel.app/products`)
             .then((response) => {
                 setCountries(response.data.countries);
                 setCities(response.data.cities);
@@ -54,7 +54,7 @@ const Product = () => {
     // change when the product and country variable changes 
     useEffect(() => {
         if(product !== "all" && country !== "all") {
-            axios.get(`https://intern-project-c87y5550q-johan-kims-projects.vercel.app/products/${product}/${country}/${city}`)
+            axios.get(`https://intern-project-liart.vercel.app/products/${product}/${country}/${city}`)
                 .then((response) => {
                     setCities(response.data.cities_lists || []);
                     setCity("all");
@@ -67,7 +67,7 @@ const Product = () => {
 
     useEffect(() => {
         setLoading(true);
-        axios.get(`https://intern-project-c87y5550q-johan-kims-projects.vercel.app/products/${product}/${country}/${city}`)
+        axios.get(`https://intern-project-liart.vercel.app/products/${product}/${country}/${city}`)
             .then((response) => {
                 setSalesOverTime(response.data.sales_over_time);
                 setProfitOverTime(response.data.profit_over_time);
