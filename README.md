@@ -1,4 +1,4 @@
-# Sales Strategy Optimization
+# BMW Sales Strategy Optimization
 
 This project focuses on optimizing sales strategy through data-driven insights and machine learning models. The goal is to assist workers in making informed decisions about marketing, inventory management, and sales patterns across different countries. This application includes interactive dashboards, machine learning predictions, and solutions to address deployment challenges.
 
